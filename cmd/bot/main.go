@@ -1,40 +1,50 @@
 package main
 
 import (
-	"log"
+	"os"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI("MyAwesomeBotToken")
+	godotenv.Load()
+	token := os.Getenv("TOKEN")
+
+	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 
 	bot.Debug = true
-
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-
 	updateConfig := tgbotapi.UpdateConfig{
 		Offset:  0,
 		Timeout: 30,
 	}
 
 	updates := bot.GetUpdatesChan(updateConfig)
-
 	for update := range updates {
 		if update.Message == nil {
 			continue
 		}
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-		msg.ReplyToMessageID = update.Message.MessageID
 
-		if _, err := bot.Send(msg); err != nil {
-			panic(err)
+		switch update.Message.Command() {
+		case "help":
+			helpCommand(bot, update.Message)
+		default:
+			DefaultBehaviour(bot, update.Message)
 		}
 	}
+}
+
+func helpCommand(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "/help - help")
+
+	bot.Send(msg)
+}
+
+func DefaultBehaviour(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "Your text is: "+inputMessage.Text)
+
+	bot.Send(msg)
 }
