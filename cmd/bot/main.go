@@ -1,9 +1,9 @@
 package main
 
 import (
-	"log"
 	"os"
 
+	"github.com/LashinCHE/golang_test_bot/internal/app/commands"
 	"github.com/LashinCHE/golang_test_bot/internal/service/product"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
@@ -25,7 +25,7 @@ func main() {
 	}
 
 	productService := product.NewService()
-
+	commander := commands.NewCommander(bot, productService)
 	updates := bot.GetUpdatesChan(updateConfig)
 	for update := range updates {
 		if update.Message == nil {
@@ -34,38 +34,11 @@ func main() {
 
 		switch update.Message.Command() {
 		case "help":
-			helpCommand(bot, update.Message)
+			commander.Help(update.Message)
 		case "list":
-			listCommand(bot, update.Message, productService)
+			commander.List(update.Message)
 		default:
-			DefaultBehaviour(bot, update.Message)
+			commander.Default(update.Message)
 		}
 	}
-}
-
-func helpCommand(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID,
-		"/help - help\n"+
-			"/list - list {entities}",
-	)
-
-	bot.Send(msg)
-}
-
-func DefaultBehaviour(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	log.Printf("[%s] %s", inputMessage.From.UserName, inputMessage.Text)
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "Your input message: "+inputMessage.Text)
-
-	bot.Send(msg)
-}
-
-func listCommand(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message, productService *product.Service) {
-	products := productService.List()
-	textAns := "Items:\n\n"
-	for _, product := range products {
-		textAns += product.Title + "\n"
-	}
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, textAns)
-
-	bot.Send(msg)
 }
