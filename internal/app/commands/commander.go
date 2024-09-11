@@ -1,6 +1,10 @@
 package commands
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
+
 	"github.com/LashinCHE/golang_test_bot/internal/service/product"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -25,7 +29,25 @@ func NewCommander(
 	}
 }
 
+type CommandData struct {
+	Offset int `json:"offset"`
+}
+
 func (c *Commander) HendlerUpdate(update *tgbotapi.Update) {
+
+	if update.CallbackQuery != nil {
+		parseData := CommandData{}
+		json.Unmarshal([]byte(update.CallbackQuery.Data), &parseData)
+
+		log.Println("Try generate update message from callback query")
+		msg := tgbotapi.NewMessage(
+			update.CallbackQuery.Message.Chat.ID,
+			fmt.Sprintf("Parsed: %+v", parseData),
+		)
+		c.bot.Send(msg)
+		return
+	}
+
 	if update.Message == nil {
 		return
 	}
