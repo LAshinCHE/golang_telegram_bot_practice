@@ -8,6 +8,8 @@ import (
 // Можно обявить мапу и в качестве ключей хранить тег команды, а в качестве значения функцию команды
 // var registeredCommands = map[string]func(c *Commander, message *tgbotapi.Message){}
 
+var registeredCommands = map[string]func(c *Commander, message *tgbotapi.Message){}
+
 type Commander struct {
 	bot            *tgbotapi.BotAPI
 	productService *product.Service
@@ -28,14 +30,21 @@ func (c *Commander) HendlerUpdate(update *tgbotapi.Update) {
 		return
 	}
 
-	switch update.Message.Command() {
-	case "help":
-		c.Help(update.Message)
-	case "list":
-		c.List(update.Message)
-	case "get":
-		c.Get(update.Message)
-	default:
+	command, ok := registeredCommands[update.Message.Command()]
+	if ok {
+		command(c, update.Message)
+	} else {
 		c.Default(update.Message)
 	}
+
+	// switch update.Message.Command() {
+	// case "help":
+	// 	c.Help(update.Message)
+	// case "list":
+	// 	c.List(update.Message)
+	// case "get":
+	// 	c.Get(update.Message)
+	// default:
+	// 	c.Default(update.Message)
+	// }
 }

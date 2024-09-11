@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/LashinCHE/golang_test_bot/internal/app/commands"
@@ -15,7 +16,7 @@ func main() {
 
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	bot.Debug = true

@@ -14,6 +14,6 @@ func (c *Commander) Help(inputMessage *tgbotapi.Message) {
 
 // Инициализируем команду
 // Инит выполняется при загрузке модуля
-// func init() {
-// 	registeredCommands["help"] = (*Commander).Help
-// }
+func init() {
+	registeredCommands["help"] = (*Commander).Help
+}
